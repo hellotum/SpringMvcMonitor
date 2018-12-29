@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title>主页</title>
+		<!--引入主题样式-->
+		<link rel="stylesheet" type="text/css" href="jquery-easyui-1.4/themes/default/easyui.css" />
+		<!--引入图标样式-->
+		<link rel="stylesheet" type="text/css" href="jquery-easyui-1.4/themes/icon.css" />
+		<!--引入jQuery文件-->
+		<script src="jquery-easyui-1.4/jquery.min.js" type="text/javascript" charset="UTF-8"></script>
+		<!--引入EasyUi的js文件-->
+		<script src="jquery-easyui-1.4/jquery.easyui.min.js" type="text/javascript" charset="UTF-8"></script>
+		<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+
+	<body>
+		<div class="easyui-layout" data-options="fit:true" style="width: 800px;height: 600px;">
+			<!--顶部-->
+			<div  region="north" style="background-color: #EEEEEE; height: 70px;text-align: center;vertical-align: middle;">
+				<h1>远程服务性能监控系统</h1>
+			</div>
+			<!--左侧菜单start-->
+			<div region="west" title="远程监控" split="true" style="width: 200px;">
+				<div class="easyui-panel" data-options="fit:true">
+					<!--手风琴菜单-->
+					<div class="easyui-accordion" data-options="multiple:true,fit:true">
+						<div title="基本性能监控" data-options="iconCls:'icon-large-chart',selected:'false'" style="overflow:auto;padding:10px;">
+							<p onclick="addNewTab('cpu运行监控','cpu_chart.html')">cpu运行监控</p>
+							<p onclick="addNewTab('磁盘使用监控','disk_chart.html')">磁盘使用监控</p>
+							<p onclick="addNewTab('内存使用监控','memory_chart.html')">内存使用监控</p>
+						</div>
+						<div title="文件系统信息监控" data-options="iconCls:'icon-search'" style="padding:10px;">
+							<ul id="tt" class="easyui-tree"></ul>
+						</div>
+						<div title="远程操作监控" data-options="iconCls:'icon-large-clipart'" style="padding:10px;">
+							<p onclick="addNewTab('远程操作监控','screen.html')">远程操作监控</p>
+						</div>
+					</div>
+					<!--手风琴菜单end-->
+				</div>
+			</div>
+			<!--中间主要区域-->
+			<div data-options="region:'center',split:true,fit:true,width:'100%',height:'100%'">
+				<div id="mainTabs" class="easyui-tabs" data-options="fit:true,width:'100%',height:'100%'">
+				</div>
+			</div>
+			<!--页脚-->
+			<div region="south" style="background-color: #EEEEEE; text-align: center;height: 90px; vertical-align: middle;">
+				<h3>东莞理工学院<br>www.dgut.com<br>谢泽荣</h3>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		$(function() {
+			//设置初始化页面就是cpu监控
+			addNewTab('cpu运行监控', 'cpu_chart.html');
+			//加载树形图
+			$("#tt").tree({
+				url: netPath + "/file/initFiles"
+			})
+			$('#tt').tree({
+				onClick: function(node) {
+					if(node.attributes.url != "") {
+						if(!$("#mainTabs").tabs('getTab', node.text)) {
+							$('#mainTabs').tabs('add', {
+								title: node.text,
+								closable: true,
+								selected: true,
+								content: "<iframe src='" + encodeURI(node.attributes.url) + "' style='width:80%;height:80%'  frameborder='yes' border='0' marginwidth='0' marginheight='0' scrolling='yes' />"
+							});
+						} else {
+							$('#mainTabs').tabs('select', node.text);
+						}
+					}
+				}
+			});
+		})
+
+		function addNewTab(tabname, url) { //创建一个新的窗口，在mainlayout上  
+			if(!$("#mainTabs").tabs('getTab', tabname)) {
+				$("#mainTabs").tabs('add', {
+					title: tabname,
+					selected: true,
+					closable: true,
+					content: "<iframe src='" + url + "' style='width:100%;height:100%'  frameborder='no' border='0' marginwidth='0' marginheight='0' scrolling='yes' />"
+				});
+			} else {
+				$('#mainTabs').tabs('select', tabname);
+			}
+		}
+	</script>
+
+</html>

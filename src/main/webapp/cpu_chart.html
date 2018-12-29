@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>cpu监控图表</title>
+		<script type="text/javascript" charset="UTF-8" src="js/jquery-3.1.1.min.js">
+		</script>
+		<script type="text/javascript" charset="UTF-8" src="flot/jquery.flot.min.js">
+		</script>
+		<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+
+	<body>
+		<div id="content">
+		</div>
+	</body>
+	<script type="text/javascript">
+		$(function() {
+			setInterval('initCpuData()', 1000);
+//			initCpuData()
+		})
+		//初始化cpu数据
+		function initCpuData() {
+			$.get(netPath + "/computer/getCpuInfo", {}, function(result) {
+				console.log(result);
+				setCpuData(result.t)
+			})
+		}
+
+		//把接口响应数据进行渲染
+		function setCpuData(t) {
+			console.log(t);
+			var data;
+			for(var i = 0; i < t.length; i++) {
+				cpudata = [
+					[8, t[i].eight],
+					[7, t[i].seven],
+					[6, t[i].six],
+					[5, t[i].five],
+					[4, t[i].four],
+					[3, t[i].three],
+					[2, t[i].two],
+					[1, t[i].one]
+				]
+
+				$("#content").append('<div id="flot' + i + '" style="width:300px;height:200px;margin: 20px;float: left;"></div>')
+
+				$.plot($("#flot" + i), [{
+					data: cpudata,
+					//设置x轴别名无效
+					// xaxis: { ticks: [[6, "1月"],[7, "1月"],[2, "1月"],[3, "1月"],[4, "1月"],[5, "1月"]], min: 1, max: 12 },
+					label: "第" + (i + 1) + "个cpu",
+					points: {
+						show: true
+					},
+					lines: {
+						show: true
+					}
+				}])
+
+			}
+		}
+	</script>
+
+</html>

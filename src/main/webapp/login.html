@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>远程服务器性能监控系统</title>
+		<link rel="stylesheet" href="layui/css/layui.css">
+
+	</head>
+	<style type="text/css">
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		
+		body {
+			width: 100%;
+		}
+		
+		#main {
+			margin: 100px auto 0px;
+			width: 310px;
+		}
+		
+		#btn {
+			text-align: center;
+		}
+		
+		#banner {
+			text-align: center;
+		}
+	</style>
+
+	<body class="login-body body">
+
+		<div class="login-box" id="main">
+			<form class="layui-form layui-form-pane" method="get" action="javascript:void()">
+				<div class="layui-form-item" id="banner">
+					<h1>远程服务器性能监控系统</h1>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">账号：</label>
+
+					<div class="layui-input-inline">
+						<input type="text" name="account" class="layui-input" lay-verify="account" placeholder="账号" autocomplete="on" maxlength="20" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">密码：</label>
+
+					<div class="layui-input-inline">
+						<input type="password" name="password" class="layui-input" lay-verify="password" placeholder="密码" maxlength="20" />
+					</div>
+				</div>
+				<!--<div class="layui-form-item">
+				<label class="layui-form-label">验证码：</label>
+
+				<div class="layui-input-inline">
+					<input type="text" name="code" class="layui-input"
+						lay-verify="code" placeholder="验证码" maxlength="4" /> <img src=""
+						onclick="getImage()" title="单击刷新验证码" id="img_rand_code" alt="">
+				</div>
+			</div>-->
+				<div class="layui-form-item" id="btn">
+					<button type="reset" class="layui-btn layui-btn-danger btn-reset">重置</button>
+					<button type="button" class="layui-btn btn-submit" lay-submit="" lay-filter="sub">立即登录</button>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+		<script type="text/javascript" src="js/md5.js"></script>
+		<script src="layui/layui.all.js"></script>
+		<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var flag = true;
+			layui.use(['form', 'layer'], function() {
+				var $ = layui.jquery,
+					form = layui.form,
+					layer = layui.layer;
+				// 验证
+				form.verify({
+					account: function(value) {
+						if(value == "") {
+							return "请输入用户名";
+						}
+					},
+					password: function(value) {
+						if(value == "") {
+							return "请输入密码";
+						}
+					},
+					code: function(value) {
+						if(value == "") {
+							return "请输入验证码";
+						}
+					}
+				});
+				// 提交监听
+				form.on('submit(sub)', function(data) {
+
+					var fields = data.field;
+					/* console.log(fields.account);
+					console.log(fields.password);
+					console.log(fields.code); */
+					//checkCode(fields);
+					if(flag == true) {
+						login(fields);
+					} else {
+						layer.msg("验证码错误")
+						getImage();
+					}
+				})
+			})
+
+			//刷新验证码
+			function getImage() {
+				$("#img_rand_code").attr("src", "/verify/getVerify?" + Date());
+			}
+			//登录访问登录接口
+			function login(fields) {
+				$.ajax({
+					url: netPath+"/user/login",
+					async: false,
+					type: 'POST',
+					data: {
+						"username": fields.account,
+						"password": md5(fields.password)
+					},
+					success: function(response) {
+						console.log(response);
+						if(response.code === 0) {
+							location = "index.html";
+						} else {
+							layer.msg(response.rtnMessage);
+						}
+					}
+				})
+			}
+			//检验验证码接口
+			function checkCode(fields) {
+
+				$.ajax({
+					type: 'POST',
+
+					//前往记得把异步的改成false
+					async: false,
+					url: "/verify/checkVerify",
+					data: {
+						"inputStr": fields.code
+					},
+					success: function(result) {
+						if(result == true) {
+							flag = true;
+						}
+					}
+				});
+			}
+			//页面加载时
+			$(function() {
+				//getImage();
+			})
+		</script>
+	</body>
+
+</html>

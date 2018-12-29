@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xzr.mapper.CpuStatusMapper">
+	<select id="getCpuinfo" resultType="java.lang.String">
+		select cpu_info from
+		cpu_status where id = ${type};
+	</select>
+
+	<update id="updateCpuInfo" parameterType="java.lang.String">
+		update cpu_status set
+		cpu_info = #{cpuinfo} where id = ${type};
+	</update>
+</mapper>

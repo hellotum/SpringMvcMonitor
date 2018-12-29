@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>文件/目录详情</title>
+		<link rel="stylesheet" type="text/css" href="jquery-easyui-1.4/themes/default/easyui.css" />
+		<link rel="stylesheet" type="text/css" href="jquery-easyui-1.4/themes/icon.css" />
+		<link rel="stylesheet" type="text/css" href="jquery-easyui-1.4/demo/demo.css" />
+		<link rel="stylesheet" type="text/css" href="layui/css/layui.css" />
+		<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="jquery-easyui-1.4/jquery.easyui.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="layui/layui.all.js" type="text/javascript" charset="utf-8"></script>
+		<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<style type="text/css">
+		.container {
+			display: inline-block;
+			margin: 30px;
+		}
+		
+		.fileImage {
+			display: inline-block;
+		}
+		
+		.fileName {
+			display: block;
+			width: 50px;
+			height: 30px;
+			font-size: 10pt;
+			margin-left: 15px;
+		}
+		
+		#uploadForm {
+			display: none;
+		}
+	</style>
+	<form id="uploadForm" enctype="multipart/form-data">
+		<div class="easyui-panel" title="Upload File" style="width:400px;padding:30px 70px 50px 70px">
+			<div style="margin-bottom:20px">
+				<div>文件:</div>
+				<input class="easyui-filebox" name="file" data-options="prompt:'请选择一个文件'" style="width:300px">
+				<input type="hidden" name="filePath" id="filePath" style="width:100px">
+			</div>
+			<div>
+				<a class="easyui-linkbutton" id="uploadBtn" style="width:100px">Upload</a >
+				</div>     
+			</div>
+	</form>
+
+	<body>
+		<div id="big">
+			<!--<div class="container"><img src="img/FolderType.png" width="100px" height="100px" class="fileImage" /><span class="fileName">照片</span></div>-->
+		</div>
+	</body>
+	<script type="text/javascript">
+		var path;
+		$(function() {
+			//初始化页面
+			getAllFiles();
+			//监听上传文件 
+			listenUploadFile();
+		})
+		//上传文件
+		function listenUploadFile() {
+			$("#uploadBtn").click(function() {
+				$('#filePath').val(path);
+				$.ajax({
+					url: netPath+'/file/upload',
+					type: 'POST',
+					cache: false,
+					data: new FormData($('#uploadForm')[0]),
+					processData: false,
+					contentType: false
+				}).done(function(res) {
+					layer.msg('上传成功');
+					layer.closeAll();
+					$("#uploadForm").hide();
+					getAllFiles();
+				}).fail(function(res) {
+					layer.msg('上传异常');
+				});
+			})
+		}
+		//从页面中截取参数
+		function getQueryString(name) {
+			var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i');
+			var r = window.location.search.substr(1).match(reg);
+			if(r != null) {
+				return unescape(r[2]);
+			}
+			return null;
+		}
+		//根据当前路径path获取到所有的文件
+		function getAllFiles() {
+			path = getQueryString('path');
+			//此处和生成tree共用一个接口
+			$.ajaxSettings.async = false;
+			$.post(netPath+"/file/initFiles", {
+				'id': path
+			}, function(result) {
+				//加载前先清空
+				$("#big").empty();
+				for(var i = 0; i < result.length; i++) {
+					//得到文件名
+					var fileName = result[i].text;
+					//得到文件扩展名
+					var fileExtName = getFileTypeByFileName(fileName);
+					//得到对应的图片地址
+					var picSrc = getFilePicByFileType(fileExtName);
+					if(result[i].state === 'closed') {
+						picSrc = 'img/FolderType.png';
+					}
+					//限制文件名的长度
+					/*if(fileName.length > 6) {
+						fileName = fileName.substring(0, 6) + '..';
+					}*/
+					//循环添加文件/文件夹对应的div信息
+					var divStr = '<div class="container"><img data-id=' + result[i].id + ' src="' + picSrc + '" id="' + i + '" onclick="downLoad($(event))" class="imgFile"  width="80px" height="80px" class="fileImage" /><span class="fileName">' + fileName + '</span></div>';
+					$("#big").append(divStr);
+				}
+				//添加上传图片和按钮
+				var divStr = '<div class="container"><img src="img/upload.png" onclick="uploadFile($(event))" id="uploadImg" width="80px" height="80px" class="fileImage" /><span class="fileName">上传</span></div>';
+				$("#big").append(divStr)
+			})
+			$.ajaxSettings.async = true;
+		}
+		//根据文件名得到文件类型
+		function getFileTypeByFileName(fileName) {
+			return fileName.substring(fileName.lastIndexOf('.') + 1, fileName.length);
+		}
+		//根据文件类型得到文件图片
+		function getFilePicByFileType(fileType) {
+			if(fileType == '') {
+				//此时为文件夹
+				return 'img/FolderType.png'
+			} else if(fileType == 'txt') {
+				return 'img/TxtType.png';
+			} else if(fileType == 'mp3') {
+				return 'img/MusicType.png'
+			} else if(fileType == 'mp4' || fileType == 'avi' || fileType == 'wmv') {
+				return 'img/VideoType.png'
+			} else if(fileType == 'png' || fileType == 'jpg') {
+				return 'img/ImgType.png'
+			} else if(fileType == 'rar' || fileType == 'zip') {
+				return 'img/RarType.png'
+			} else {
+				//多余的统一用默认图片展示
+				return 'img/OtherType.png'
+			}
+		}
+
+		//下载/删除文件
+		function downLoad(id) {
+			layer.confirm('请选择您要的操作？', {
+				btn: ['下载', '删除', '关闭'] //可以无限个按钮
+					,
+				btn3: function(index, layero) {}
+			}, function(index, layero) {
+				location = encodeURI(netPath+"/file/downLoad?filePath=" + $(id[0].target).attr('data-id'));
+				layer.close(index);
+			}, function(index) {
+				//删除操作
+				$.post(netPath+"/file/deleteFile", {
+					'filePath': $(id[0].target).attr('data-id')
+				}, function(result) {
+					layer.msg(result.t);
+					$('#' + id[0].target.id).parent().remove();
+				})
+				layer.closeAll();
+				//删除完刷新页面
+				/*alert('删除成功');
+				top.window.location.reload();*/
+			});
+		}
+		
+		//上传文件
+		function uploadFile(id) {
+			//弹窗
+			layer.open({
+				type: 1,
+				title: "上传文件",
+				area: ['400px', '300px'],
+				content: $("#uploadForm"),
+				cancel: function(index, layero) {
+					$("#uploadForm").hide();
+					getAllFiles();
+				}
+			});
+
+		}
+	</script>
+
+</html>

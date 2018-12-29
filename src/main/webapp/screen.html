@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="1">
+    <title>远程屏幕</title>
+</head>
+<body>
+<img id='screenPic' src=""/>
+</body>
+<script src="js/jquery-3.1.1.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    $(function () {
+      // setInterval('getPic()',1000);
+        getPic();
+    })
+
+    function getPic() {
+        $.get(netPath + '/os/getScreen', {}, function (result) {
+            $("#screenPic").attr('src', netPath + result);
+        })
+    }
+</script>
+
+</html>

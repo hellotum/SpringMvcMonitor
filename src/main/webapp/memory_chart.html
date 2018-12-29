@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>内存监控图表</title>
+		<script src="jquery-easyui-1.4/jquery.min.js" type="text/javascript" charset="UTF-8"></script>
+		<script type="text/javascript" charset="UTF-8" src="flot/jquery.flot.min.js"></script>
+		<script type="text/javascript" charset="UTF-8" src="flot/jquery.flot.pie.min.js"></script>
+		<script src="properties.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<style>
+		div.graph {
+			width: 500px;
+			height: 400px;
+			border: 1px dashed gainsboro;
+			float: left;
+		}
+		
+		.MomeryName {
+			display: block;
+		}
+		
+		.container {
+			width: 500px;
+			height: 500px;
+			float: left;
+			margin: 20px;
+		}
+	</style>
+
+	<body>
+		<div id="big">
+			<div id="hover"></div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		$(function() {
+			setInterval('initMomeryInfo()',1000) ;
+		});
+
+		function initMomeryInfo() {
+			$.get(netPath + "/computer/getMemoryInfo", {
+				'type': 2
+			}, function(result) {
+				var tbody = result.t;
+				var MomeryData;
+				console.log(tbody);
+				$("#big").empty();
+				for(var i = 0; i < tbody.length; i++) {
+					var divStr = '<div class="container"><h3 class="MomeryName">' + tbody[i].diskName + '</h3> <div id="pie' + i + '" class="graph"></div><div>';
+					$("#big").append(divStr);
+					MomeryData = [{
+						label: '未使用',
+						data: tbody[i].availableZoo
+					}, {
+						label: '已使用',
+						data: tbody[i].unavailableZoo
+					}];
+					$.plot($("#pie" + i), MomeryData, {
+						series: {
+							pie: {
+								show: true //显示饼图  
+							}
+						},
+						legend: {
+							show: false //显示图例  
+						}
+					});
+				}
+			})
+		}
+	</script>
+
+</html>
